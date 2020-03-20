@@ -13,7 +13,7 @@ args, unknown = parser.parse_known_args()
 
 
 if __name__ == '__main__':
-    package = 'decentralized_ergodic'
+    package = 'ergodic_humanswarmcollab_sim'
     executable = 'create_agent.py'
 
     nodes       = []

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>decentralized_ergodic</name>
+  <name>ergodic_humanswarmcollab_sim</name>
   <version>0.0.0</version>
-  <description>The decentralized_ergodic</description>
+  <description>Ergodic Human-Swarm Collaboration Simulator</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

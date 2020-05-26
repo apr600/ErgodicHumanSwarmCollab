@@ -7,8 +7,16 @@ import rospy
 from std_msgs.msg import String, Float32MultiArray
 from target_dist import TargetDist
 
-from decentralized_ergodic.msg import Ck
+from ergodic_humanswarmcollab_sim.msg import Ck
+"""
+Decentralized ergodic controller for each agent. Takes in an agent identifer,
+dynamics model, cost function weights, time horizon over which to calculate a trajectory,
+number of basis functions to represent the trajectory in Fourier space,
+a capacity for the replay buffer, and a batch size to sample from the replay
+buffer when representing the trajectory of each agent. The controller outputs
+a set of controls to be executed by the agent.
 
+"""
 class DErgControl(object):
 
     def __init__(self, agent_name, model,
@@ -29,7 +37,6 @@ class DErgControl(object):
 
         self._u = [0.0*np.zeros(self._model.action_space.shape[0])
                         for _ in range(t_horizon)]
-        # TODO: implement more weights
         if weights is None:
             weights = {'R' : np.eye(self._model.action_space.shape[0])}
         self._Rinv = np.linalg.inv(weights['R'])
@@ -42,7 +49,6 @@ class DErgControl(object):
 
         self.pred_path = []
 
-        # set up the eos stuff last
         rospy.Subscriber('ck_link', Ck, self._ck_link_callback)
         self._ck_pub = rospy.Publisher('ck_link', Ck, queue_size=1)
 
@@ -63,10 +69,10 @@ class DErgControl(object):
     def __call__(self, state):
         assert self._targ_dist.phik is not None, 'Forgot to set phik'
 
-        if self._targ_dist.has_update==True: 
+        if self._targ_dist.has_update==True:
             self._replay_buffer.reset()
             self._targ_dist.has_update = False
-            
+
         self._u[:-1] = self._u[1:]
         self._u[-1]  = np.zeros(self._model.action_space.shape[0])
 

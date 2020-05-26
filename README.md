@@ -3,7 +3,8 @@ Ergodic Human-Swarm Collaboration Simulator
 
 Decentralized Ergodic Swarm with User Inputs from TanvasTouch Tablet and Task Specifications for object avoidance and convergence.
 
-Create a ros melodic environment with this package in the src folder. 
+Create a ros melodic environment with this package in the src folder. Make the following files executable (chmod +x file _name.py): create_agent, create_agent_rendering, create_environment_rendering, test_grid_maps.
+
 First source the ros devel/setup file
 To run use the following commands:
 ```
@@ -18,7 +19,7 @@ rosrun rviz rviz
 ```
 and open the swarm_paths.rviz config in the rviz folder in this repo.
 
-Once running, the swarm can respond in realtime to easter eggs (EEs) to converge upon, disabling devices(DDs) to avoid, and user inputs sent through the TanvasTouch tablet. To send user inputs through the tablet, setup the TanvasTouch communications using the tanvas_comms package.
+Once running, the swarm can respond in realtime to easter eggs (EEs) to converge upon, disabling devices (DDs) to avoid, and user inputs sent through the TanvasTouch tablet. To send user inputs through the tablet, setup the TanvasTouch communications using the tanvas_comms package.
 
 Send object locations (easter eggs) to converge upon by publishing a geometry_msgs/Pose message with the object location specified in the (x,y) position values of the message to the '/ee_loc' topic.
 

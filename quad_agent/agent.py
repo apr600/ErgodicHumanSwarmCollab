@@ -26,7 +26,6 @@ class Agent(Model):
         self.ctrllr = DErgControl(agent_name, Model(),num_basis=10)
         self.__br = tf.TransformBroadcaster()
 
-        # TODO: consider moving this into the target dist class
         self._target_dist_pub = rospy.Publisher(agent_name+'/target_dist', GridMap, queue_size=1)
 
         gridmap = GridMap()
@@ -66,23 +65,13 @@ class Agent(Model):
         self.pose_msg.orientation.x = 0.0
         self.pose_msg.orientation.x = 0.0
         self.pose_msg.orientation.w = 1.0
-        
+
 
     def step(self):
         ctrl = self.ctrllr(self.state)
         pred_path = self.ctrllr.pred_path
         super(Agent, self).step(ctrl)
-        # self.update_rendering(pred_path)
 
-        # if (np.abs(self.state[0]-self.dd_loc[0])<0.01) and (np.abs(self.state[1]-self.dd_loc[1])<0.01):
-        #     self.pose_msg.position.x = self.dd_loc[0]
-        #     self.pose_msg.position.y = self.dd_loc[1]
-        #     self.dd_pub.publish(self.pose_msg)
-
-        # if (np.abs(self.state[0]-self.ee_loc[0])<0.01) and (np.abs(self.state[1]-self.ee_loc[1])<0.01):
-        #     self.pose_msg.position.x = self.ee_loc[0]
-        #     self.pose_msg.position.y = self.ee_loc[1]
-            # self.ee_pub.publish(self.pose_msg)
         self.__br.sendTransform(
             (self.state[0]*10, self.state[1]*10, 0.),
             (0.,0.,0.,1.),

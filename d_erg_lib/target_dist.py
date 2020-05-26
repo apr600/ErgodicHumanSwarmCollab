@@ -5,13 +5,14 @@ import numpy.random as npr
 from utils import convert_phi2phik
 
 from geometry_msgs.msg import Pose
-from tanvas_comms.msg import input_array
+# from tanvas_comms.msg import input_array #Uncomment to use with Tanvas
 
 class TargetDist(object):
     '''
-    This is going to be a test template for the code,
-    eventually a newer version will be made to interface with the
-    unity env
+    Defines the target distribution that the quadrotors will explore.
+    The distribution is initialized to uniform. Change self.tanvas to True
+    when using the Tanvas interface and uncomment the tanvas comms message
+    as well as the input array subscriber found in init.
     '''
 
     def __init__(self, basis, num_nodes=2, num_pts=50):
@@ -26,6 +27,7 @@ class TargetDist(object):
         self._phik = convert_phi2phik(self.basis, self.grid_vals, self.grid)
 
         self.has_update = False
+
         # Update for Environmental Stimuli (EEs & DDs)
         self.dd_means = []
         self.ee_means = []
@@ -33,15 +35,15 @@ class TargetDist(object):
         self.ee_vars = []
         self._ee = False
         self._dd = False
-        
+
         rospy.Subscriber('/ee_loc', Pose, self.ee_callback)
         rospy.Subscriber('/dd_loc', Pose, self.dd_callback)
 
-        # Update for Tanvas Inputs
+        # Change to True for Tanvas inputs
         self._tanvas = False
-        rospy.Subscriber('/input', input_array, self.tanvas_callback)
+        # rospy.Subscriber('/input', input_array, self.tanvas_callback)
 
-        
+
     @property
     def phik(self):
         return self._phik
@@ -72,29 +74,29 @@ class TargetDist(object):
         self.dd_means.append(np.array([data.position.x, data.position.y]))
         self.dd_vars.append(np.array([0.1,0.1]))
         self._dd = True
-        
+
         ee_val = np.zeros(self.grid.shape[0])
         ee_scale = np.ones(self.grid.shape[0])
-        if self._ee: 
+        if self._ee:
             for m, v in zip(self.ee_means, self.ee_vars):
                 innerds = np.sum((self.grid-m)**2 / v, 1)
-                ee_val += np.exp(-innerds/2.0)# / np.sqrt((2*np.pi)**2 * np.prod(v))
-            ee_val /= np.sum(ee_val)
+                ee_val += np.exp(-innerds/2.0)
             ee_scale = ee_val
 
         dd_val = np.zeros(self.grid.shape[0])
         dd_scale = np.ones(self.grid.shape[0])
         for m, v in zip(self.dd_means, self.dd_vars):
             innerds = np.sum((self.grid-m)**2 / v, 1)
-            dd_val += np.exp(-innerds/2.0)# / np.sqrt((2*np.pi)**2 * np.prod(v))
+            dd_val += np.exp(-innerds/2.0)
         dd_scale = dd_val
+
         # Invert DD distribution
         dd_val -= np.max(dd_val)
         dd_val = np.abs(dd_val)#+1e-5
         dd_val /= np.sum(dd_val)
 
-        if self._tanvas: 
-            val = (self.tanvas_dist + ee_val + dd_val) *  dd_scale 
+        if self._tanvas:
+            val = (self.tanvas_dist + ee_val + dd_val) *  dd_scale
         else:
             val = (ee_val + dd_val)  *  dd_scale
 
@@ -116,16 +118,16 @@ class TargetDist(object):
         ee_scale = np.ones(self.grid.shape[0])
         for m, v in zip(self.ee_means, self.ee_vars):
             innerds = np.sum((self.grid-m)**2 / v, 1)
-            ee_val += np.exp(-innerds/2.0)# / np.sqrt((2*np.pi)**2 * np.prod(v))
+            ee_val += np.exp(-innerds/2.0)
         ee_val /= np.sum(ee_val)
         ee_scale = ee_val
 
         dd_scale = np.ones(self.grid.shape[0])
         dd_val = np.zeros(self.grid.shape[0])
-        if self._dd: 
+        if self._dd:
             for m, v in zip(self.dd_means, self.dd_vars):
                 innerds = np.sum((self.grid-m)**2 / v, 1)
-                dd_val += np.exp(-innerds/2.0)# / np.sqrt((2*np.pi)**2 * np.prod(v))
+                dd_val += np.exp(-innerds/2.0)
             # Invert DD distribution
             dd_val -= np.max(dd_val)
             dd_val = np.abs(dd_val)#+1e-5
@@ -133,10 +135,12 @@ class TargetDist(object):
 
             dd_scale = dd_val
 
-        if self._tanvas: 
+        # uncomment to use with Tanvas
+        if self._tanvas:
             val = (self.tanvas_dist + ee_val + dd_val) * dd_scale
         else:
             val = (ee_val + dd_val) * dd_scale
+
         # normalizes the distribution
         val /= np.sum(val)
         self.grid_vals = val
@@ -144,7 +148,7 @@ class TargetDist(object):
 
         #self.has_update = True
 
-
+    # Uncomment to use with Tanvas
     def tanvas_callback(self, data):
         if data.datalen != 0:
             self._tanvas = True
@@ -161,18 +165,18 @@ class TargetDist(object):
             tan_arr = tan_arr.ravel()
             if np.max(tan_arr) > 0:
                     temp = tan_arr
-            target_dist = temp            
+            target_dist = temp
             target_dist /= np.sum(target_dist)
             self.tanvas_dist = target_dist
 
-            
+
             grid = np.meshgrid(*[np.linspace(0,1,grid_lenx), np.linspace(0,1,grid_leny)])
             self.grid = np.c_[grid[0].ravel(), grid[1].ravel()]
             # self._phik = convert_phi2phik(self.basis,target_dist, self.grid)
 
             ee_val = np.zeros(self.grid.shape[0])
             ee_scale = np.ones(self.grid.shape[0])
-            if self._ee: 
+            if self._ee:
                 for m, v in zip(self.ee_means, self.ee_vars):
                     innerds = np.sum((self.grid-m)**2 / v, 1)
                     ee_val += np.exp(-innerds/2.0)# / np.sqrt((2*np.pi)**2 * np.prod(v))
@@ -181,7 +185,7 @@ class TargetDist(object):
 
             dd_val = np.zeros(self.grid.shape[0])
             dd_scale = np.ones(self.grid.shape[0])
-            if self._dd: 
+            if self._dd:
                 for m, v in zip(self.dd_means, self.dd_vars):
                     innerds = np.sum((self.grid-m)**2 / v, 1)
                     dd_val += np.exp(-innerds/2.0)# / np.sqrt((2*np.pi)**2 * np.prod(v))
@@ -198,4 +202,3 @@ class TargetDist(object):
             self._phik = convert_phi2phik(self.basis,self.grid_vals,self.grid)
 
             self.has_update = True
-

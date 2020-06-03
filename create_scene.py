@@ -3,19 +3,13 @@
 
 import rospy
 import roslaunch
+
 import argparse
-
-"""
-This script creates a visualization of a swarm of quadrotors executing
-the decentralized ergodic control algorithm.
-
-Arguments: number of agents in the scene (not advisable to use more than 50)
-
-"""
 
 parser = argparse.ArgumentParser()
 parser.add_argument('num_agents', type=int, help='agent number', default=1)
 args, unknown = parser.parse_known_args()
+
 
 
 if __name__ == '__main__':
@@ -49,6 +43,9 @@ if __name__ == '__main__':
                     node_type='create_agent_rendering.py', name='robot_rendering', output="screen")
     processes.append(launch.launch(robot_rendering_node))
 
+    # env_rendering_node = roslaunch.core.Node(package=package, node_type='create_env_rendering.py',
+    #                     name='env_rendering',output="screen", args=str(6))
+    # processes.append(launch.launch(env_rendering_node))
 
     rospy.init_node('launch_node', anonymous=True)
     rospy.spin()
